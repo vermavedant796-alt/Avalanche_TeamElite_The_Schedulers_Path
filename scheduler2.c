@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+
 typedef struct
 {
     int p_id;
@@ -10,6 +11,7 @@ typedef struct
     int w_t;   // waiting time
     int is_completed;
     int remaining_t;
+    int priority;
 
 } Process;
 
@@ -253,6 +255,99 @@ void round_robin(Process p[], int n, int tq)
 }
 
 
+void multi_level_scheduling(Process p[], int n, int tq){
+    printf("\n\t\tMulti Level Scheduling is running.\n");
+    printf("Level 1: Highest Priority (Priority>6) : Round Robin\n");
+    printf("Level 2: Medium Priority (6>Priority>4) : SJF\n");
+    printf("Level 3: Lowest Priority (Priority<4) : FCFS\n");
+
+    
+    int current_time =0;
+    int total_wt = 0;
+    int total_tat = 0;
+    int completed = 0;
+    
+    for (int i = 0; i < n; i++)
+    {
+        p[i].remaining_t = p[i].b_t;
+        p[i].is_completed = 0;
+    }
+    
+    printf("%-10s %-15s %-10s %-10s %-15s\n", "PID", "Queue", "AT", "BT", "Completion");
+
+    while(completed<n){
+
+        int executed = 0;
+
+        // Highest Priority
+        for (int i = 0; i < n; i++)
+        {
+            if(p[i].priority >=6 && p[i].remaining_t >0 && p[i].a_t <= current_time){
+
+                executed = 1;
+
+                if(p[i].remaining_t > tq){
+
+                    p[i].remaining_t = p[i].remaining_t - tq;
+                    current_time = current_time + tq;
+                }
+                else{
+                    
+                    current_time = current_time + p[i].remaining_t;
+                    p[i].remaining_t = 0;
+                    p[i].is_completed = 1;
+                    p[i].c_t = current_time;
+
+                    printf("P%-9d Level-1 (RR)  %-11d %-11d %-16d \n", p[i].p_id, p[i].a_t, p[i].b_t, p[i].c_t);
+                    completed++;                    
+                }
+                break; // so that it doesnt go to next priority without completing this priority tasks
+            }
+
+            if(executed == 0){
+                // Mid level priority
+
+                
+                executed = 1;
+                int min_bt = 99999;
+                int idx = -1;
+                
+                for (int i = 0; i < n; i++)
+                {
+                    if((p[i].priority <6 && p[i].priority >=4) && p[i].remaining_t >0 && p[i].a_t <= current_time){                  
+                        if(p[i].b_t< min_bt){
+                            min_bt = p[i].b_t;
+                            idx = i;                            
+                        }
+                    }
+                }
+                if(idx != -1){
+                    executed = 1;
+                    p[idx].remaining_t--;
+                    current_time ++;
+                    if(p[idx].remaining_t == 0){
+                        current_time = current_time + p[idx].b_t;
+                        p[idx].c_t = current_time;
+                        p[idx].remaining_t = 0;
+                        p[idx].is_completed = 1;
+    
+                        printf("P%-9d Level-2 (SJF) %-11d %-11d %-16d \n", p[idx].p_id, p[idx].a_t, p[idx].b_t, p[idx].c_t);
+                        completed ++;
+                    }
+                }
+            }
+            if(executed == 0){
+                //Lowest Priority      
+            }
+
+            if(executed == 0){
+                // cpu idle
+                current_time ++;
+            }
+        }        
+    }
+}
+
 int main()
 {
 
@@ -272,6 +367,9 @@ int main()
 
         printf("Enter the burst time of P%d: ", p[i].p_id);
         scanf("%d", &p[i].b_t);
+
+        printf("Enter the priority of P%d: ", p[i].p_id);
+        scanf("%d", &p[i].priority);
 
         p[i].is_completed=0;
 
@@ -300,6 +398,12 @@ int main()
         temp[i] = p[i];
     }
     round_robin(temp,n,time_quantum);
+
+    // MultiLevel
+    for (int i = 0; i < n; i++) {
+        temp[i] = p[i];
+    }
+    multi_level_scheduling(temp, n, time_quantum);
 
 
 
