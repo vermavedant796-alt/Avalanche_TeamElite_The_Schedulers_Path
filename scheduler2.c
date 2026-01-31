@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-
 typedef struct
 {
     int p_id;
@@ -256,10 +255,10 @@ void round_robin(Process p[], int n, int tq)
 
 
 void multi_level_scheduling(Process p[], int n, int tq){
-    printf("\n\t\tMulti Level Scheduling is running.\n");
+    printf("\n\t\tMulti Level Scheduling is running.\n\n");
     printf("Level 1: Highest Priority (Priority>6) : Round Robin\n");
     printf("Level 2: Medium Priority (6>Priority>4) : SJF\n");
-    printf("Level 3: Lowest Priority (Priority<4) : FCFS\n");
+    printf("Level 3: Lowest Priority (Priority<4) : FCFS\n\n");
 
     
     int current_time =0;
@@ -279,7 +278,7 @@ void multi_level_scheduling(Process p[], int n, int tq){
 
         int executed = 0;
 
-        // Highest Priority
+        // Highest Priority: RR
         for (int i = 0; i < n; i++)
         {
             if(p[i].priority >=6 && p[i].remaining_t >0 && p[i].a_t <= current_time){
@@ -298,17 +297,17 @@ void multi_level_scheduling(Process p[], int n, int tq){
                     p[i].is_completed = 1;
                     p[i].c_t = current_time;
 
-                    printf("P%-9d Level-1 (RR)  %-11d %-11d %-16d \n", p[i].p_id, p[i].a_t, p[i].b_t, p[i].c_t);
+                    printf("P%-9d Level-1 (RR)   %-11d %-11d %-16d \n", p[i].p_id, p[i].a_t, p[i].b_t, p[i].c_t);
                     completed++;                    
                 }
                 break; // so that it doesnt go to next priority without completing this priority tasks
             }
+        }
 
             if(executed == 0){
                 // Mid level priority
-
                 
-                executed = 1;
+                
                 int min_bt = 99999;
                 int idx = -1;
                 
@@ -326,26 +325,64 @@ void multi_level_scheduling(Process p[], int n, int tq){
                     p[idx].remaining_t--;
                     current_time ++;
                     if(p[idx].remaining_t == 0){
-                        current_time = current_time + p[idx].b_t;
                         p[idx].c_t = current_time;
-                        p[idx].remaining_t = 0;
                         p[idx].is_completed = 1;
     
-                        printf("P%-9d Level-2 (SJF) %-11d %-11d %-16d \n", p[idx].p_id, p[idx].a_t, p[idx].b_t, p[idx].c_t);
+                        printf("P%-9d Level-2 (SJF)  %-11d %-11d %-16d \n", p[idx].p_id, p[idx].a_t, p[idx].b_t, p[idx].c_t);
                         completed ++;
                     }
                 }
             }
             if(executed == 0){
-                //Lowest Priority      
+                //Lowest Priority 
+                
+                int earliest_at = 9999;
+                int idx = -1;
+                for (int i = 0; i < n; i++)
+                {
+                    if(p[i].priority < 4 && p[i].remaining_t > 0 && p[i].a_t <= current_time){
+
+                        if(p[i].a_t < earliest_at){
+                            earliest_at = p[i].a_t;
+                            idx = i;
+                        }
+                    }
+                }
+                if(idx != -1){
+                    executed = 1;
+                    p[idx].remaining_t --;
+                    current_time ++;
+
+                    if(p[idx].remaining_t == 0){
+                        p[idx].c_t = current_time;
+                        p[idx].is_completed = 1;
+                        printf("P%-9d Level-3 (FCFS) %-11d %-11d %-16d \n", p[idx].p_id, p[idx].a_t, p[idx].b_t, p[idx].c_t);
+                        completed++;
+                    }
+                }
             }
 
             if(executed == 0){
                 // cpu idle
                 current_time ++;
             }
-        }        
+                
     }
+    
+    float a_wt=0;
+    float a_tat=0;
+    for (int i = 0; i < n; i++)
+    {
+        p[i].t_a_t = p[i].c_t - p[i].a_t;
+        p[i].w_t = p[i].t_a_t - p[i].b_t;   
+        a_wt = a_wt + p[i].w_t;
+        a_tat = a_tat + p[i].t_a_t;
+    }
+    a_wt = a_wt/n;
+    a_tat =a_tat/n;
+    printf("\nAverage Turn Around Time = %.2f \n", a_tat);
+    printf("Average Waiting Time = %.2f \n", a_wt);
+    
 }
 
 int main()
@@ -404,8 +441,5 @@ int main()
         temp[i] = p[i];
     }
     multi_level_scheduling(temp, n, time_quantum);
-
-
-
     return 0;
 }
