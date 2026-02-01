@@ -281,7 +281,7 @@ void multi_level_scheduling(Process p[], int n, int tq){
         // Highest Priority: RR
         for (int i = 0; i < n; i++)
         {
-            if(p[i].priority >=6 && p[i].remaining_t >0 && p[i].a_t <= current_time){
+            if(p[i].priority >=7 && p[i].remaining_t >0 && p[i].a_t <= current_time){
 
                 executed = 1;
 
@@ -313,7 +313,7 @@ void multi_level_scheduling(Process p[], int n, int tq){
                 
                 for (int i = 0; i < n; i++)
                 {
-                    if((p[i].priority <6 && p[i].priority >=4) && p[i].remaining_t >0 && p[i].a_t <= current_time){                  
+                    if((p[i].priority <7 && p[i].priority >=4) && p[i].remaining_t >0 && p[i].a_t <= current_time){                  
                         if(p[i].b_t< min_bt){
                             min_bt = p[i].b_t;
                             idx = i;                            
